@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Guidance Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #f5f7ff 0%, #e3e7ff 100%);
+            overflow: hidden;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            height: 600px;
+            border-radius: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #1a3c54 0%, #0f2537 100%);
+            color: hsl(51, 100%, 50%);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-icon i {
+            font-size: 24px;
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.4s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .user-message .message-icon {
+            background-color: #1a3c54;
+            color: white;
+        }
+
+        .bot-message .message-icon {
+            background-color: #1a3c54;
+            color: #ffd700;
+        }
+
+        .message-content {
+            padding: 6px 10px;
+            border-radius: 8px;
+            max-width: calc(100% - 60px);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .user-message .message-content {
+            background-color: #f1f5f9;
+            color: #334155;
+            border-top-left-radius: 5px;
+        }
+
+        .bot-message .message-content {
+            background-color: #1a3c54;
+            color: white;
+            border-top-right-radius: 5px;
+        }
+
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
+            gap: 8px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            width: fit-content;
+        }
+
+        .audio-button {
+            background: none;
+            border: none;
+            color: #ffd700;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .audio-button:hover {
+            color: #ffffff;
+        }
+
+        .audio-duration {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            min-width: 50px;
+        }
+
+        .bot-message .message-content ul {
+            margin: 0px 0px;
+            padding-left: 0px;
+            list-style-type: none;
+        }
+
+        .bot-message .message-content li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 1px;
+        } 
+
+        .bot-message .message-content li:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 8px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            margin: 0 2px;
+            background-color: #ffd700;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+
+        .chat-input {
+            padding: 20px;
+            background-color: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            background-color: #f8fafc;
+            border-radius: 30px;
+            padding: 5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        #user-input {
+            flex-grow: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            outline: none;
+        }
+
+        #send-button, #mic-button {
+            background-color: #1a3c54;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+        #send-button:hover, #mic-button:hover {
+            background-color: #0f2537;
+        }
+
+        #send-button:disabled, #mic-button:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .fa-paper-plane, .fa-microphone {
+            font-size: 16px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .chat-container {
+                max-width: 95%;
+                height: 90vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-icon">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="header-title">Career Guidance Chatbot</div>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="Ask me about career choices after FSc...">
+                <button id="mic-button" aria-label="Start voice input">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button id="send-button" aria-label="Send message">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let speechSynthesis = window.speechSynthesis;
+            let currentUtterance = null;
+            let isPlaying = false;
+            let currentAudioButton = null;
+            let currentDurationElement = null;
+            let recognition = null;
+
+            function addMessage(message, isUser) {
+                var messageDiv = $('<div class="message"></div>').addClass(isUser ? 'user-message' : 'bot-message');
+                
+                var iconDiv = $('<div class="message-icon"></div>')
+                    .append($('<i class="fas"></i>').addClass(isUser ? 'fa-user' : 'fa-graduation-cap'));
+                
+                var contentDiv = $('<div class="message-content"></div>');
+                
+                if (isUser) {
+                    contentDiv.text(message);
+                } else {
+                    contentDiv.html(message);
+                    
+                    // Add audio controls for bot messages
+                    var audioControls = $('<div class="audio-controls"></div>');
+                    var audioButton = $('<button class="audio-button"><i class="fas fa-play"></i></button>');
+                    var audioDuration = $('<span class="audio-duration">0:00</span>');
+                    
+                    audioControls.append(audioButton).append(audioDuration);
+                    contentDiv.append(audioControls);
+
+                    // Setup audio controls
+                    setupAudioControls(audioButton, audioDuration, message);
+                }
+
+                messageDiv.append(iconDiv).append(contentDiv);
+                $('#chat-messages').append(messageDiv);
+                $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+            }
+
+            function setupAudioControls(button, durationElement, message) {
+                let utterance = new SpeechSynthesisUtterance(message);
+                
+                // Calculate approximate duration (rough estimate)
+                let words = message.split(' ').length;
+                let estimatedDuration = Math.ceil(words * 0.4); // Assuming average of 0.4 seconds per word
+                updateDurationDisplay(durationElement, estimatedDuration);
+
+                button.click(function() {
+                    if (isPlaying && currentUtterance) {
+                        stopSpeaking();
+                        return;
+                    }
+
+                    // Reset any previous playing state
+                    if (currentAudioButton) {
+                        currentAudioButton.find('i').removeClass('fa-stop').addClass('fa-play');
+                    }
+
+                    // Update UI and play
+                    button.find('i').removeClass('fa-play').addClass('fa-stop');
+                    currentAudioButton = button;
+                    currentDurationElement = durationElement;
+                    isPlaying = true;
+
+                    // Speak the message
+                    currentUtterance = utterance;
+                    
+                    // Handle speech end
+                    utterance.onend = function() {
+                        button.find('i').removeClass('fa-stop').addClass('fa-play');
+                        isPlaying = false;
+                        currentUtterance = null;
+                    };
+
+                    speechSynthesis.speak(utterance);
+                });
+            }
+
+            function updateDurationDisplay(element, seconds) {
+                let minutes = Math.floor(seconds / 60);
+                let remainingSeconds = seconds % 60;
+                element.text(`${minutes}:${remainingSeconds.toString().padStart(2, '0')}`);
+            }
+
+            function stopSpeaking() {
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel();
+                    if (currentAudioButton) {
+                        currentAudioButton.find('i').removeClass('fa-stop').addClass('fa-play');
+                    }
+                    isPlaying = false;
+                    currentUtterance = null;
+                }
+            }
+
+            function showTypingIndicator() {
+                var typingDiv = $('<div class="message bot-message"></div>');
+                var iconDiv = $('<div class="message-icon"><i class="fas fa-graduation-cap"></i></div>');
+                var contentDiv = $('<div class="message-content"></div>').text('Typing');
+                var indicatorDiv = $('<div class="typing-indicator"></div>')
+                    .append('<div class="typing-dot"></div>')
+                    .append('<div class="typing-dot"></div>')
+                    .append('<div class="typing-dot"></div>');
+                
+                contentDiv.append(indicatorDiv);
+                typingDiv.append(iconDiv).append(contentDiv);
+                
+                $('#chat-messages').append(typingDiv);
+                $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+                return typingDiv;
+            }
+
+            function sendMessage() {
+                var message = $('#user-input').val();
+                if (message.trim() !== '') {
+                    addMessage(message, true);
+                    $('#send-button').prop('disabled', true);
+                    $('#user-input').val('');
+
+                    var typingIndicator = showTypingIndicator();
+
+                    $.post('/send_message', {message: message}, function(data) {
+                        typingIndicator.remove();
+                        addMessage(data.response, false);
+                        $('#send-button').prop('disabled', false);
+                    });
+                }
+            }
+
+            $('#send-button').click(sendMessage);
+
+            $('#user-input').keypress(function(e) {
+                if (e.which == 13 && !e.shiftKey) {
+                    sendMessage();
+                    return false;
+                }
+            });
+
+            // Speech recognition setup
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+
+                recognition.onresult = function(event) {
+                    var result = event.results[0][0].transcript;
+                    $('#user-input').val(result);
+                    sendMessage();
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    $('#mic-button').removeClass('listening');
+                };
+
+                recognition.onend = function() {
+                    $('#mic-button').removeClass('listening');
+                };
+            }
+
+            $('#mic-button').click(function() {
+                if (recognition) {
+                    if ($(this).hasClass('listening')) {
+                        recognition.stop();
+                        $(this).removeClass('listening');
+                    } else {
+                        recognition.start();
+                        $(this).addClass('listening');
+                    }
+                } else {
+                    console.error('Speech recognition not supported in this browser.');
+                }
+            });
+
+            // Add initial message
+            addMessage("Hello! I'm your Career Guidance assistant. How can I help you with your career choices after FSc in Pakistan?", false);
+        });
+    </script>
+</body>
+</html>
+
